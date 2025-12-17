@@ -1,0 +1,6 @@
+{
+  "host": "localhost",
+  "username": "webservice",
+  "password": "webservice",
+  "db": "hotel_webservice"
+}
