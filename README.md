@@ -106,11 +106,12 @@ Este método simula a un cliente externo y no requiere estar logueado.
 ### 5. Eliminar reserva (DELETE)
 * **Método:** `DELETE`
 * **URL:** `http://localhost/API_Hotel/index.php?api=true`
-* **Body (JSON):** ```json
+* **Body (JSON):**
+  ```json
     { 
       "id": 1 
     }
-    ```
+  ```
 
 ---
 
