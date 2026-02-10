@@ -1,136 +1,104 @@
-# 🏨 Sistema de Gestión de Reservas - Paradise Hotel
+# 🏨 Hotel Paradise - Enterprise Backend API
 
-¡Bienvenido! Este es el proyecto desarrollado en común por **Gabi y Alex**. Hemos diseñado y programado una **API RESTful** en PHP que permite gestionar las reservas de un hotel de lujo, integrando seguridad de grado administrativo y una interfaz de usuario moderna.
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg) ![PHP](https://img.shields.io/badge/PHP-8.1+-purple.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-La aplicación se divide en dos capas principales:
-1.  **Capa de Servicio (Backend):** Una API que procesa peticiones JSON y gestiona la persistencia en MySQL.
-2.  **Capa de Presentación (Frontend):** Una interfaz SPA (*Single Page Application*) que interactúa con la API de forma asíncrona.
+**Hotel Paradise API** es un sistema de gestión hotelera robusto, escalable y seguro. Esta plataforma integra una API RESTful con una interfaz de usuario moderna (SPA/Frontend) para ofrecer una experiencia completa tanto a administradores como a huéspedes.
 
 ---
 
-## 🚀 Despliegue y Configuración (XAMPP)
+## 🏗️ Arquitectura del Proyecto
 
-Hemos simplificado el proceso para que la instalación sea inmediata en un entorno local:
+El proyecto sigue una estructura modular y profesional, separando claramente responsabilidades:
 
-### 1. Preparación de la Base de Datos
-* Accede a `phpMyAdmin`.
-* Importa el archivo `database.sql`. Este script:
-    * Crea la base de datos `hotel_webservice`.
-    * Define las tablas con **integridad referencial** (Claves Foráneas).
-    * Configura el usuario de sistema `webservice`.
-    * Inserta el perfil de Administrador con contraseña encriptada por BCRYPT.
+```
+API_Hotel/
+├── assets/             # Recursos estáticos (Frontend)
+│   ├── css/            # Estilos (styles.css)
+│   └── js/             # Lógica de cliente (app.js)
+├── config/             # Configuración del sistema
+│   ├── config.json     # Credenciales (NO subir a repo público en prod)
+│   └── db.php          # Singleton de conexión PDO
+├── database/           # Migraciones y esquemas
+│   └── schema.sql      # Script de inicialización
+├── includes/           # Componentes reutilizables (Header, Footer)
+├── api.php             # API Gateway (REST Controller)
+├── index.php           # Landing Page (Public)
+└── admin.php           # Panel Administrativo (Private)
+```
 
-### 2. Configuración del Servidor
-* Asegúrate de que el archivo `credenciales.txt` esté en la raíz del proyecto. El sistema leerá este JSON para conectar con la BD:
+## ✨ Características Principales
+
+- **API RESTful Segura**: Endpoints protegidos para operaciones CRUD.
+- **Autenticación**: Sistema de login basado en sesiones y hashing con BCRYPT.
+- **Gestión de Base de Datos**: Uso de PDO con sentencias preparadas para prevenir SQL Injection.
+- **Diseño Premium**: Interfaz responsive con animaciones y UX cuidada.
+- **Transacciones Atómicas**: Integridad de datos garantizada en operaciones críticas.
+
+---
+
+## 🚀 Instalación y Despliegue (XAMPP)
+
+1.  **Clonar/Copiar Proyecto**:
+    Ubica la carpeta `API_Hotel` en tu directorio `htdocs` (ej: `C:\xampp\htdocs\API_Hotel`).
+
+2.  **Base de Datos**:
+    - Abre tu gestor MySQL (phpMyAdmin).
+    - Importa el archivo `/database/schema.sql`.
+    - Esto creará la base de datos `hotel_webservice` y las tablas necesarias.
+
+3.  **Configuración**:
+    Verifica que `/config/config.json` coincida con tu entorno:
+
     ```json
     {
       "host": "localhost",
-      "db": "hotel_webservice",
       "username": "webservice",
-      "password": "webservice"
+      "password": "webservice",
+      "db": "hotel_webservice"
     }
     ```
 
-### 3. Acceso al Proyecto
-* Ubica la carpeta en `C:/xampp/htdocs/API_Hotel/`.
-* Accede desde el navegador: `http://localhost/API_Hotel/`
+4.  **Ejecutar**:
+    Accede a `http://localhost/API_Hotel/`.
 
 ---
 
-## 🔒 Seguridad y Lógica de Negocio
+## 🔌 Documentación de la API
 
-El proyecto implementa un flujo de trabajo profesional para garantizar la seguridad:
-
-* **Autenticación BCRYPT:** Las contraseñas se procesan mediante algoritmos de hash seguros, cumpliendo con los estándares actuales de protección de datos.
-* **Control de Sesiones:** Se utiliza `session_start()` para validar el rol de administrador. Las acciones sensibles (Listar, Editar, Eliminar) están protegidas y devolverán un **Error 401** si no hay una sesión activa.
-* **Transacciones Atómicas:** En el registro de reservas, se utilizan transacciones SQL para asegurar que la creación del usuario y su reserva se realicen correctamente de forma conjunta.
-
-### 🔑 Acceso Administrativo para Pruebas:
-* **Usuario:** `webservice@hotel.com`
-* **Password:** `webservice`
+| Método   | Endpoint                | Acción          | Auth Requerida |
+| :------- | :---------------------- | :-------------- | :------------- |
+| `POST`   | `/api.php?action=login` | Iniciar Sesión  | No             |
+| `GET`    | `/api.php`              | Listar Reservas | **Sí (Admin)** |
+| `POST`   | `/api.php`              | Crear Reserva   | No             |
+| `PUT`    | `/api.php`              | Editar Reserva  | **Sí (Admin)** |
+| `DELETE` | `/api.php`              | Borrar Reserva  | **Sí (Admin)** |
 
 ---
 
-## 🛠️ Guía Detallada de Pruebas con Thunder Client
+## 🛡️ Credenciales de Prueba
 
-Debido a la seguridad por sesiones, para probar los métodos privados, primero debes autenticarte en la herramienta.
+Para acceder al panel de administración:
 
-
-
-### 1. Autenticación (Login) - **Paso Obligatorio**
-Para activar la sesión en el cliente de API (acceder como administrador) y poder acceder a los datos:
-* **Método:** `POST`
-* **URL:** `http://localhost/API_Hotel/index.php?api=true&action=login`
-* **Body (JSON):**
-    ```json
-    {
-      "email": "webservice@hotel.com",
-      "password": "webservice"
-    }
-    ```
-* **Resultado:** Recibirás un mensaje de "Acceso concedido". Thunder Client mantendrá la cookie `PHPSESSID` para las siguientes peticiones.
-
-### 2. Consultar Reservas (GET)
-* **Método:** `GET`
-* **URL:** `http://localhost/API_Hotel/index.php?api=true`
-* **Resultado:** Listado completo de reservas en formato JSON.
-
-### 3. Crear nueva reserva (POST) - **Público**
-Este método simula a un cliente externo y no requiere estar logueado.
-* **Método:** `POST`
-* **URL:** `http://localhost/API_Hotel/index.php?api=true`
-* **Body (JSON):**
-    ```json
-    {
-      "nombre": "Gabi",
-      "apellidos": "Alex",
-      "entrada": "2026-06-01",
-      "salida": "2026-06-15",
-      "habitacion": 105
-    }
-    ```
-
-### 4. Modificar reserva (PUT)
-* **Método:** `PUT`
-* **URL:** `http://localhost/API_Hotel/index.php?api=true`
-* **Body (JSON):**
-    ```json
-    {
-      "id": 1,
-      "entrada": "2026-07-01",
-      "salida": "2026-07-20",
-      "habitacion": 202
-    }
-    ```
-
-### 5. Eliminar reserva (DELETE)
-* **Método:** `DELETE`
-* **URL:** `http://localhost/API_Hotel/index.php?api=true`
-* **Body (JSON):**
-  ```json
-    { 
-      "id": 1 
-    }
-  ```
+- **Usuario:** `webservice@hotel.com`
+- **Contraseña:** `webservice`
 
 ---
 
-## 🛠️ Solución de Problemas (Troubleshooting)
+## ⚠️ Solución de Problemas (Troubleshooting)
 
-* **Error 500:** Revisa que el archivo `credenciales.txt` tenga los datos correctos de tu MySQL.
-* **Error 401 en Thunder Client:** Asegúrate de haber realizado el **Paso 1 (Login)** con éxito antes de intentar un GET o DELETE.
-* **Puertos de Apache:** Si usas un puerto distinto al 80 (ej. 8080), cambia las URLs a `http://localhost:8080/API_Hotel/...`.
-* **Cierre de Sesión:** Si deseas forzar el cierre de sesión para probar la restricción, usa: `http://localhost/API_Hotel/index.php?api=true&action=logout`.
+### Error #1034 - Clave de archivo erronea para la tabla: 'db'
 
----
+Si al importar la base de datos recibes este error, significa que tu instalación de MySQL en XAMPP tiene archivos corruptos (común tras apagados inesperados).
 
-## 📂 Estructura del Repositorio
-* `index.php`: Router de la API y renderizado del Frontend.
-* `/css/styles.css`: Diseño corporativo y estilos de componentes.
-* `/js/app.js`: Lógica asíncrona y comunicación con la API.
-* `database.sql`: Esquema de base de datos y datos iniciales.
-* `credenciales.txt`: Parámetros de conexión dinámica.
-* `README.md`: Este manual.
+**Solución:**
+
+1.  En phpMyAdmin, importa el archivo `/database/repair_xampp.sql`.
+2.  Si esto funciona, vuelve a importar `/database/schema.sql`.
+3.  **Alternativa rápida:** Si no logras repararlo, edita `/config/config.json` y usa el usuario `root` (sin contraseña) y en `/database/schema.sql` borra las líneas de `CREATE USER` y `GRANT`.
 
 ---
-**Proyecto realizado en común por Gabriel Daniel Manea y Álex Vicente López** *Módulo: Desarrollo Web en Entorno Servidor*
+
+## 👨‍💻 Autores
+
+Desarrollado con ❤️ y código limpio por **Gabriel Daniel Manea & Álex Vicente López**.
+_Módulo: Desarrollo Web en Entorno Servidor_
