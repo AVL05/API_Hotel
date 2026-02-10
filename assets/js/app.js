@@ -14,9 +14,50 @@ function closeModal(id) {
 // Cerrar modal al hacer click fuera
 window.onclick = function (event) {
   if (event.target.classList.contains("modal-overlay")) {
+    if (event.target.id === "customAlert") return; // No cerrar alert al click fuera por seguridad
     event.target.classList.remove("open");
   }
 };
+
+/**
+ * SISTEMA DE ALERTAS PERSONALIZADAS
+ */
+let alertCallback = null;
+
+function showCustomAlert(title, message, type = "info", callback = null) {
+  const modal = document.getElementById("customAlert");
+  const iconContainer = document.getElementById("alertIcon");
+  const titleEl = document.getElementById("alertTitle");
+  const msgEl = document.getElementById("alertMessage");
+
+  // Configurar contenido
+  titleEl.innerText = title;
+  msgEl.innerText = message;
+  alertCallback = callback;
+
+  // Configurar icono y estilo
+  iconContainer.className = "alert-icon"; // Reset
+  if (type === "success") {
+    iconContainer.innerHTML = '<i class="fas fa-check"></i>';
+    iconContainer.classList.add("alert-success");
+  } else if (type === "error") {
+    iconContainer.innerHTML = '<i class="fas fa-times"></i>';
+    iconContainer.classList.add("alert-error");
+  } else {
+    iconContainer.innerHTML = '<i class="fas fa-info"></i>';
+    iconContainer.classList.add("alert-info");
+  }
+
+  modal.classList.add("open");
+}
+
+function closeCustomAlert() {
+  document.getElementById("customAlert").classList.remove("open");
+  if (alertCallback) {
+    alertCallback();
+    alertCallback = null;
+  }
+}
 
 /**
  * LOGIN
@@ -25,7 +66,12 @@ async function submitLogin() {
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPass").value;
 
-  if (!email || !password) return alert("Por favor complete todos los campos");
+  if (!email || !password)
+    return showCustomAlert(
+      "Error",
+      "Por favor complete todos los campos",
+      "error",
+    );
 
   try {
     const res = await fetch("api.php?action=login", {
@@ -38,11 +84,15 @@ async function submitLogin() {
       // Redirigir a admin.php si el login es exitoso
       window.location.href = "admin.php";
     } else {
-      alert(result.error);
+      showCustomAlert("Acceso Denegado", result.error, "error");
     }
   } catch (err) {
     console.error("Error en login:", err);
-    alert("Error de conexión");
+    showCustomAlert(
+      "Error de Conexión",
+      "No se pudo conectar con el servidor",
+      "error",
+    );
   }
 }
 
@@ -102,18 +152,31 @@ async function postReserva() {
     apellidos: document.querySelector("#apellidos").value,
     entrada: document.querySelector("#entrada").value,
     salida: document.querySelector("#salida").value,
-    habitacion: document.querySelector("#hab").value,
+    habitacion_numero: document.querySelector("#hab").value,
+    habitacion_id: document.querySelector("#tipo_habitacion").value || null,
   };
 
   if (!data.nombre || !data.entrada || !data.salida)
-    return alert("Faltan datos obligatorios");
+    return showCustomAlert(
+      "Campos Incompletos",
+      "Por favor rellena todos los datos obligatorios para continuar.",
+      "error",
+    );
 
   // Validación Frontend
   const hoy = new Date().toISOString().split("T")[0];
   if (data.entrada < hoy)
-    return alert("La fecha de entrada no puede ser anterior a hoy.");
+    return showCustomAlert(
+      "Fecha Inválida",
+      "La fecha de entrada no puede ser anterior a hoy.",
+      "error",
+    );
   if (data.salida <= data.entrada)
-    return alert("La fecha de salida debe ser posterior a la de entrada.");
+    return showCustomAlert(
+      "Fecha Inválida",
+      "La fecha de salida debe ser posterior a la de entrada.",
+      "error",
+    );
 
   try {
     const res = await fetch("api.php", {
@@ -123,13 +186,29 @@ async function postReserva() {
     });
 
     const result = await res.json();
-    alert(result.mensaje || result.error);
+
     if (res.ok) {
-      // Redirigir a index o limpiar formulario
-      window.location.href = "index.php";
+      showCustomAlert(
+        "¡Reserva Confirmada!",
+        "Tu estancia ha sido reservada con éxito. Te esperamos en el paraíso.",
+        "success",
+        () => {
+          window.location.href = "index.php";
+        },
+      );
+    } else {
+      showCustomAlert(
+        "Error en la Reserva",
+        result.error || "Ocurrió un problema inesperado.",
+        "error",
+      );
     }
   } catch (e) {
-    alert("Error al conectar con el servidor: " + e);
+    showCustomAlert(
+      "Error Crítico",
+      "No se pudo conectar con el servidor: " + e,
+      "error",
+    );
   }
 }
 
@@ -196,9 +275,10 @@ async function deleteReserva(id) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: id }),
     });
+    // No alert needed for simple delete refresh, standard UX
     loadReservas();
   } catch (e) {
-    alert("Error al eliminar");
+    showCustomAlert("Error", "Error al eliminar la reserva", "error");
   }
 }
 
@@ -209,7 +289,8 @@ function openEditModal(reserva) {
   document.getElementById("editId").value = reserva.id;
   document.getElementById("editEntrada").value = reserva.fecha_entrada;
   document.getElementById("editSalida").value = reserva.fecha_salida;
-  document.getElementById("editHab").value = reserva.habitacion;
+  document.getElementById("editHab").value =
+    reserva.habitacion_numero || reserva.habitacion; // Fallback
 
   document.getElementById("modalEdit").classList.add("open");
 }
@@ -220,10 +301,20 @@ async function submitEdit() {
   const sal = document.getElementById("editSalida").value;
   const hab = document.getElementById("editHab").value;
 
-  if (!ent || !sal) return alert("Fechas obligatorias");
+  if (!ent || !sal)
+    return showCustomAlert(
+      "Datos Faltantes",
+      "Las fechas son obligatorias",
+      "error",
+    );
 
   // Validaciones FE
-  if (sal <= ent) return alert("La fecha de salida debe ser posterior");
+  if (sal <= ent)
+    return showCustomAlert(
+      "Error Fechas",
+      "La fecha de salida debe ser posterior",
+      "error",
+    );
 
   try {
     const res = await fetch("api.php", {
@@ -234,13 +325,14 @@ async function submitEdit() {
 
     const result = await res.json();
     if (res.ok) {
-      alert(result.mensaje);
-      closeModal("modalEdit");
-      loadReservas();
+      showCustomAlert("Actualizado", result.mensaje, "success", () => {
+        closeModal("modalEdit");
+        loadReservas();
+      });
     } else {
-      alert(result.error);
+      showCustomAlert("Error", result.error, "error");
     }
   } catch (e) {
-    alert("Error al actualizar");
+    showCustomAlert("Error", "Error al conectar con el servidor", "error");
   }
 }

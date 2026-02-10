@@ -30,6 +30,16 @@ if (session_status() === PHP_SESSION_NONE) {
         </div>
     </footer>
 
+    <!-- ALERT CUSTOM MODAL -->
+    <div id="customAlert" class="modal-overlay">
+        <div class="modal alert-modal">
+            <div class="alert-icon" id="alertIcon"></div>
+            <h3 id="alertTitle" class="alert-title"></h3>
+            <p id="alertMessage" class="alert-message"></p>
+            <button class="btn-primary" onclick="closeCustomAlert()">Entendido</button>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="./assets/js/app.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>

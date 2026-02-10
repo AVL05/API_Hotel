@@ -33,11 +33,11 @@
                 <!-- Selección de Tipo de Habitación (Mockup Visual) -->
                 <div class="input-group">
                     <label class="input-label">Tipo de Habitación</label>
-                    <select class="input-field" onchange="suggestRoomNumber(this)">
-                        <option value="">Selecciona una opción...</option>
-                        <option value="1">Suite Presidencial</option>
-                        <option value="2">Habitación Deluxe</option>
-                        <option value="3">Junior Suite</option>
+                    <select id="tipo_habitacion" class="input-field" onchange="suggestRoomNumber(this); updatePrice()">
+                        <option value="" data-price="0">Selecciona una opción...</option>
+                        <option value="1" data-price="350">Suite Presidencial - 350€/noche</option>
+                        <option value="2" data-price="180">Habitación Deluxe - 180€/noche</option>
+                        <option value="3" data-price="240">Junior Suite - 240€/noche</option>
                     </select>
                 </div>
                 
@@ -76,25 +76,32 @@
     // Pequeño script para calcular precio estimado en tiempo real (Frontend only)
     const entradaIn = document.getElementById('entrada');
     const salidaIn = document.getElementById('salida');
+    const roomSelect = document.getElementById('tipo_habitacion');
     
     function updatePrice() {
-        if(entradaIn.value && salidaIn.value) {
+        if(entradaIn.value && salidaIn.value && roomSelect.value) {
             const start = new Date(entradaIn.value);
             const end = new Date(salidaIn.value);
             const diffTime = Math.abs(end - start);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
             
-            if(diffDays > 0) {
+            // Obtener precio de la opción seleccionada
+            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            const pricePerNight = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+
+            if(diffDays > 0 && pricePerNight > 0) {
                 document.getElementById('priceSummary').style.display = 'block';
                 document.getElementById('daysCount').innerText = diffDays;
-                // Precio base promedio 200
-                document.getElementById('totalPrice').innerText = diffDays * 200;
+                document.getElementById('totalPrice').innerText = diffDays * pricePerNight;
+            } else {
+                document.getElementById('priceSummary').style.display = 'none';
             }
         }
     }
 
     entradaIn.addEventListener('change', updatePrice);
     salidaIn.addEventListener('change', updatePrice);
+    // El select ya tiene onchange="... updatePrice()"
 
     function suggestRoomNumber(select) {
         const input = document.getElementById('hab');
