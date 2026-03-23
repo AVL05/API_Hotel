@@ -100,5 +100,5 @@ Si al importar la base de datos recibes este error, significa que tu instalació
 
 ## 👨‍💻 Autores
 
-Desarrollado con ❤️ y código limpio por **Gabriel Daniel Manea & Álex Vicente López**.
+Desarrollado por **Gabriel Daniel Manea & Álex Vicente López**.
 _Módulo: Desarrollo Web en Entorno Servidor_
